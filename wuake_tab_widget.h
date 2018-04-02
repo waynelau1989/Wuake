@@ -23,15 +23,27 @@ public:
     ~WuakeTabWidget();
 
     bool isValidIndex(int index);
+    bool hasTab();
+
+    void addPage(const QString& title, WuakeTabPage* page);
+    void delPageByIndex(int index);
+    void delPage(WuakeTabPage* page);
+    void closePage(int index);
+
+    void newTab();
+    void switchToLeft();
+    void switchToRight();
+    void moveToLeft();
+    void moveToRight();
 
 public slots:
     void setCurrentPage(int index);
+    void onPageState(WuakePageState state);
+    void destroy();
 
-    void addPage(const QString& title, WuakeTabPage* page);
-
-    void delPage(int index);
-
-    void closeAllTabs();
+private:
+    WuakeTabPage* findPageByIndex(int index);
+    int findIndexByPage(WuakeTabPage* page);
 
 private:
     QStackedLayout* mPagesLayout;
@@ -39,4 +51,5 @@ private:
 
     WuakeTabWidgetCorner* mCornerWidget;
 
+    bool mIsDestroying;
 };

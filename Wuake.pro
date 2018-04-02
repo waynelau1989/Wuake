@@ -27,6 +27,8 @@ msvc: {
     DEFINES -= UNICODE
 }
 
+include($$PWD/QHotkey/qhotkey.pri)
+
 SOURCES += \
         main.cpp \
         dialog.cpp \

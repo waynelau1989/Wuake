@@ -5,31 +5,61 @@
 #include <QProcess>
 #include <QString>
 
+typedef enum {
+    PAGE_STATE_START,
+    PAGE_STATE_CLOSE,
+    PAGE_STATE_ERROR
+} WuakePageState;
+
 class WuakeTabPage : public QWidget
 {
     Q_OBJECT
 public:
     WuakeTabPage(QWidget* parent = nullptr);
-    ~WuakeTabPage();
+    virtual ~WuakeTabPage();
 
-    void requestFocus();
+    virtual void requestFocus();
 
-    void close();
+    virtual void close();
 
 signals:
-    void closed();
-    void started();
+    void stateChanged(WuakePageState state);
+
+protected slots:
+    void onError(QProcess::ProcessError error);
+    void onFinished(int exitCode, QProcess::ExitStatus exitStatus);
+    void onStarted();
 
 protected:
     virtual QString className() = 0;
     virtual QString titleName() = 0;
 
+    bool event(QEvent *event);
+
+protected:
+    QProcess* mProcess;
+
 private:
     HWND mHwnd;
 
-    QString mTitleName;
-
-    QProcess* mProcess;
     QWindow* mWindow;
     QWidget* mWidget;
+};
+
+
+class MinttyTabPage : public WuakeTabPage
+{
+public:
+    MinttyTabPage(QWidget* parent = nullptr);
+    ~MinttyTabPage();
+
+protected:
+    void startProcess();
+    QString className();
+    QString titleName();
+
+private:
+    static quint64 sCounter;
+
+    QString mTitleName;
 };
