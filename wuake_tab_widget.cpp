@@ -54,6 +54,7 @@ WuakeTabWidget::WuakeTabWidget(QWidget *parent) :
 
     connect(mCornerWidget->mBtnClose, SIGNAL(released()), this, SLOT(destroy()));
     connect(mTabBar, SIGNAL(tabBarClicked(int)), this, SLOT(setCurrentPage(int)));
+    connect(&mTimer, SIGNAL(timeout()), this, SLOT(onTimeout()));
 }
 
 WuakeTabWidget::~WuakeTabWidget()
@@ -88,15 +89,24 @@ void WuakeTabWidget::onPageState(WuakePageState state)
         }
         break;
     case PAGE_STATE_START:
+        if (mTabBar->count() == 1) {
+            mTimer.start(500);
+        }
         break;
     default:
         break;
     }
 }
 
+void WuakeTabWidget::onTimeout()
+{
+    mTimer.stop();
+    parentWidget()->activateWindow();
+}
+
 void WuakeTabWidget::setCurrentPage(int index)
 {
-    qDebug("setCurrentPage:%d", index);
+    //qDebug("setCurrentPage:%d", index);
     if (!isValidIndex(index)) {
         return;
     }
@@ -116,6 +126,7 @@ void WuakeTabWidget::addPage(const QString &title, WuakeTabPage *page)
     mPagesLayout->addWidget(page);
     mTabBar->setTabData(index, QVariant((quint64)page));
     connect(page, SIGNAL(stateChanged(WuakePageState)), this, SLOT(onPageState(WuakePageState)));
+    page->startProcess();
     mIsDestroying = false;
     setCurrentPage(index);
 }

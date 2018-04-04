@@ -31,13 +31,11 @@ include($$PWD/QHotkey/qhotkey.pri)
 
 SOURCES += \
         main.cpp \
-        dialog.cpp \
     wuake_tab_widget.cpp \
     wuake_window.cpp \
     wuake_tab_page.cpp
 
 HEADERS += \
-        dialog.h \
     wuake_window.h \
     wuake_tab_widget.h \
     wuake_tab_page.h

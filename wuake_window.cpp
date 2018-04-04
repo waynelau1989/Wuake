@@ -10,6 +10,7 @@ WuakeWindow::WuakeWindow(QWidget *parent) :
     //QDialog(parent, Qt::ToolTip | Qt::FramelessWindowHint)
     QDialog(parent)
 {
+    resize(819, 475);
     mTabWidget = new WuakeTabWidget(this);
 
     QVBoxLayout* layoutRoot = new QVBoxLayout(this);

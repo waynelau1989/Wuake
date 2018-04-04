@@ -2,6 +2,8 @@
 #include <QProcess>
 #include <QThread>
 #include <QVBoxLayout>
+#include <QFileInfo>
+#include <QDir>
 #include <Windows.h>
 #include "wuake_tab_page.h"
 
@@ -30,6 +32,18 @@ void WuakeTabPage::close()
     ::SendMessage(mHwnd, WM_CLOSE, 0, 0);
 }
 
+void WuakeTabPage::startProcess()
+{
+}
+
+bool WuakeTabPage::processRunning()
+{
+    if (mProcess->state() == QProcess::NotRunning) {
+        return false;
+    }
+    return true;
+}
+
 void WuakeTabPage::onError(QProcess::ProcessError error)
 {
     Q_UNUSED(error);
@@ -46,7 +60,7 @@ void WuakeTabPage::onFinished(int exitCode, QProcess::ExitStatus exitStatus)
 void WuakeTabPage::onStarted()
 {
     mHwnd = ::FindWindow(className().toLocal8Bit().data(), titleName().toLocal8Bit().data());
-    for (int i=0; i<10 && 0 == mHwnd; ++i) {
+    for (int i=0; i<100 && 0 == mHwnd; ++i) {
         QThread::msleep(5);
         mHwnd = ::FindWindow(className().toLocal8Bit().data(), titleName().toLocal8Bit().data());
     }
@@ -67,17 +81,23 @@ bool WuakeTabPage::event(QEvent *event)
     if (event->type() == QEvent::WindowActivate) {
         requestFocus();
     }
+    /*
+    if (event->type() != QEvent::Paint) {
+        qDebug("event:%d", event->type());
+    }
+    */
     return QWidget::event(event);
 }
 
 
 
 quint64 MinttyTabPage::sCounter = 0;
+QString MinttyTabPage::sMinttyPath;
 MinttyTabPage::MinttyTabPage(QWidget *parent) :
     WuakeTabPage(parent)
 {
     mTitleName = QString("%1%2").arg(className()).arg(++sCounter);
-    startProcess();
+    findMintty();
 }
 
 MinttyTabPage::~MinttyTabPage()
@@ -86,6 +106,11 @@ MinttyTabPage::~MinttyTabPage()
 
 void MinttyTabPage::startProcess()
 {
+    QFileInfo minttyInfo(sMinttyPath);
+    if (!minttyInfo.exists()) {
+        return;
+    }
+
     QProcess* process = mProcess;
     QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
     env.insert("ConEmuPID", "-1");
@@ -105,9 +130,7 @@ void MinttyTabPage::startProcess()
     params << "-t" << titleName();
     params << "--nopin";
     params << "-";
-    process->start("C:/Program Files/Git/usr/bin/mintty.exe", params);
-    process->waitForStarted();
-
+    process->start(sMinttyPath, params);
 }
 
 QString MinttyTabPage::className()
@@ -118,4 +141,38 @@ QString MinttyTabPage::className()
 QString MinttyTabPage::titleName()
 {
     return mTitleName;
+}
+
+QString findByCmdWhere(const QString& cmd)
+{
+    QProcess process;
+    QList<QString> params;
+    params << cmd;
+    process.start("where", params);
+    process.waitForFinished();
+    if (process.exitCode() != 0) return nullptr;
+
+    QByteArray output = process.readAllStandardOutput();
+    int pos = output.indexOf("\n");
+    if (pos < 0) return nullptr;
+
+    QByteArray path = output.left(pos - 1);
+    return QString(path);
+}
+
+void MinttyTabPage::findMintty()
+{
+    if (!sMinttyPath.isEmpty()) return;
+
+    sMinttyPath = findByCmdWhere("mintty.exe");
+    if (!sMinttyPath.isEmpty()) return;
+
+    QString gitPath = findByCmdWhere("git.exe");
+    if (gitPath.isEmpty()) return;
+
+    QFileInfo gitInfo(gitPath);
+
+    QDir tmp = gitInfo.absoluteDir();
+    tmp.cdUp();
+    sMinttyPath = tmp.absolutePath() + "/usr/bin/mintty.exe";
 }

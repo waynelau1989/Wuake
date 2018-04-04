@@ -3,6 +3,7 @@
 #include <QStackedLayout>
 #include <QPushButton>
 #include <QTabBar>
+#include <QTimer>
 #include "wuake_tab_page.h"
 
 class WuakeTabWidgetCorner : public QWidget
@@ -41,6 +42,9 @@ public slots:
     void onPageState(WuakePageState state);
     void destroy();
 
+private slots:
+    void onTimeout();
+
 private:
     WuakeTabPage* findPageByIndex(int index);
     int findIndexByPage(WuakeTabPage* page);
@@ -48,6 +52,8 @@ private:
 private:
     QStackedLayout* mPagesLayout;
     QTabBar* mTabBar;
+
+    QTimer mTimer;
 
     WuakeTabWidgetCorner* mCornerWidget;
 

@@ -22,6 +22,10 @@ public:
 
     virtual void close();
 
+    virtual void startProcess();
+
+    virtual bool processRunning();
+
 signals:
     void stateChanged(WuakePageState state);
 
@@ -53,13 +57,18 @@ public:
     MinttyTabPage(QWidget* parent = nullptr);
     ~MinttyTabPage();
 
-protected:
     void startProcess();
+
+protected:
     QString className();
     QString titleName();
 
 private:
+    void findMintty();
+
+private:
     static quint64 sCounter;
+    static QString sMinttyPath;
 
     QString mTitleName;
 };
