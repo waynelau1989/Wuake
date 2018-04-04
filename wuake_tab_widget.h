@@ -49,6 +49,8 @@ private:
     WuakeTabPage* findPageByIndex(int index);
     int findIndexByPage(WuakeTabPage* page);
 
+    void focusCurrentPage(int delayMS = 500);
+
 private:
     QStackedLayout* mPagesLayout;
     QTabBar* mTabBar;

@@ -125,7 +125,7 @@ void MinttyTabPage::startProcess()
     if (!homeDir.isEmpty()) {
         params << "--dir" << homeDir;
     }
-    params << "-s" << "100,30";
+    //params << "-s" << "100,30";
     params << "-B" << "void";
     params << "-t" << titleName();
     params << "--nopin";

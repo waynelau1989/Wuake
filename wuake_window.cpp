@@ -1,14 +1,17 @@
-﻿#include <QMessageBox>
+﻿#include <QApplication>
+#include <QDesktopWidget>
+#include <QMessageBox>
 #include <QVBoxLayout>
 #include <QTabBar>
 #include <QKeySequence>
+#include <QRect>
 #include "QHotkey"
 #include "wuake_window.h"
 #include "wuake_tab_page.h"
 
 WuakeWindow::WuakeWindow(QWidget *parent) :
-    //QDialog(parent, Qt::ToolTip | Qt::FramelessWindowHint)
-    QDialog(parent)
+    QDialog(parent, Qt::ToolTip | Qt::FramelessWindowHint)
+    //QDialog(parent)
 {
     resize(819, 475);
     mTabWidget = new WuakeTabWidget(this);
@@ -19,11 +22,46 @@ WuakeWindow::WuakeWindow(QWidget *parent) :
 
     initHotkeys();
 
+    initAnim();
+
     mTabWidget->newTab();
 }
 
 WuakeWindow::~WuakeWindow()
 {
+}
+
+void WuakeWindow::initAnim()
+{
+    updateAnimRect();
+
+    mShowAnim.setTargetObject(this);
+    mShowAnim.setPropertyName("geometry");
+    mShowAnim.setDuration(150);
+
+    mHideAnim.setTargetObject(this);
+    mHideAnim.setPropertyName("geometry");
+    mHideAnim.setDuration(150);
+
+    connect(&mHideAnim, &QPropertyAnimation::finished, this, &QDialog::hide);
+}
+
+void WuakeWindow::updateAnimRect()
+{
+    QRect screenSize = QApplication::desktop()->availableGeometry();
+    int w = width();
+    int h = height();
+    int x = (screenSize.right() - w)/2;
+    int y = 0;
+
+    QRect rectStart(x, y - h, w, h);
+    QRect rectEnd(x, y, w, h);
+
+    mShowAnim.setStartValue(rectStart);
+    mShowAnim.setEndValue(rectEnd);
+
+    mHideAnim.setStartValue(rectEnd);
+    mHideAnim.setEndValue(rectStart);
 }
 
 void WuakeWindow::initHotkeys()
@@ -82,4 +120,29 @@ void WuakeWindow::onHotkey()
         mTabWidget->moveToRight();
         break;
     }
+}
+
+void WuakeWindow::show()
+{
+    QDialog::show();
+    mShowAnim.start();
+}
+
+void WuakeWindow::hide()
+{
+    if (mShowAnim.state() == QAbstractAnimation::Running ||
+        mHideAnim.state() == QAbstractAnimation::Running) {
+        return;
+    }
+    mHideAnim.start();
+}
+
+void WuakeWindow::resizeEvent(QResizeEvent *event)
+{
+    Q_UNUSED(event);
+    if (mShowAnim.state() == QAbstractAnimation::Running ||
+        mHideAnim.state() == QAbstractAnimation::Running) {
+        return;
+    }
+    updateAnimRect();
 }

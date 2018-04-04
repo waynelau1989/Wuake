@@ -4,6 +4,7 @@
 #include <QDialog>
 #include <QString>
 #include <QMap>
+#include <QPropertyAnimation>
 #include "wuake_tab_widget.h"
 
 typedef enum {
@@ -24,13 +25,24 @@ public:
     WuakeWindow(QWidget* parent = nullptr);
     ~WuakeWindow();
 
+    void show();
+    void hide();
+
+protected:
+    void resizeEvent(QResizeEvent* event);
+
 protected slots:
     void onHotkey();
 
 private:
     void initHotkeys();
+    void initAnim();
+    void updateAnimRect();
 
 private:
     WuakeTabWidget* mTabWidget;
     QMap<HotKeyCode,QString> mHotkeys;
+
+    QPropertyAnimation mShowAnim;
+    QPropertyAnimation mHideAnim;
 };

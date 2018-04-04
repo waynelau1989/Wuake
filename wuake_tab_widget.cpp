@@ -10,6 +10,7 @@ WuakeTabWidgetCorner::WuakeTabWidgetCorner(QWidget *parent) :
 {
     mBtnClose = new QPushButton(this);
     mBtnClose->setText("C");
+    mBtnClose->setFocusPolicy(Qt::NoFocus);
 
     QHBoxLayout* layout = new QHBoxLayout(this);
     layout->setContentsMargins(0, 0, 0, 0);
@@ -30,6 +31,7 @@ WuakeTabWidget::WuakeTabWidget(QWidget *parent) :
     QWidget(parent),
     mIsDestroying(false)
 {
+    setFocusPolicy(Qt::StrongFocus);
     QVBoxLayout* rootLayout = new QVBoxLayout(this);
     rootLayout->setContentsMargins(0, 0, 0, 0);
     rootLayout->setSpacing(0);
@@ -90,7 +92,7 @@ void WuakeTabWidget::onPageState(WuakePageState state)
         break;
     case PAGE_STATE_START:
         if (mTabBar->count() == 1) {
-            mTimer.start(500);
+            focusCurrentPage(500);
         }
         break;
     default:
@@ -102,6 +104,8 @@ void WuakeTabWidget::onTimeout()
 {
     mTimer.stop();
     parentWidget()->activateWindow();
+    WuakeTabPage* page = reinterpret_cast<WuakeTabPage*>(mPagesLayout->currentWidget());
+    if (nullptr != page) page->requestFocus();
 }
 
 void WuakeTabWidget::setCurrentPage(int index)
@@ -117,7 +121,7 @@ void WuakeTabWidget::setCurrentPage(int index)
     if (page != mPagesLayout->currentWidget()) {
         mPagesLayout->setCurrentWidget(page);
     }
-    page->requestFocus();
+    focusCurrentPage(250);
 }
 
 void WuakeTabWidget::addPage(const QString &title, WuakeTabPage *page)
@@ -226,4 +230,17 @@ int WuakeTabWidget::findIndexByPage(WuakeTabPage *page)
         }
     }
     return -1;
+}
+
+void WuakeTabWidget::focusCurrentPage(int delayMS)
+{
+    if (delayMS < 1) {
+        onTimeout();
+        return;
+    }
+
+    if (mTimer.isActive()) {
+        mTimer.stop();
+    }
+    mTimer.start(delayMS);
 }
