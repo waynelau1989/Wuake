@@ -124,12 +124,15 @@ void WuakeWindow::onHotkey()
 
 void WuakeWindow::show()
 {
+    if (!isHidden()) return;
+
     QDialog::show();
     mShowAnim.start();
 }
 
 void WuakeWindow::hide()
 {
+    if (isHidden()) return;
     if (mShowAnim.state() == QAbstractAnimation::Running ||
         mHideAnim.state() == QAbstractAnimation::Running) {
         return;

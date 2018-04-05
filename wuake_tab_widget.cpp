@@ -2,6 +2,7 @@
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QVariant>
+#include <QResizeEvent>
 #include "wuake_tab_widget.h"
 
 
@@ -9,22 +10,54 @@ WuakeTabWidgetCorner::WuakeTabWidgetCorner(QWidget *parent) :
     QWidget(parent)
 {
     mBtnClose = new QPushButton(this);
-    mBtnClose->setText("C");
     mBtnClose->setFocusPolicy(Qt::NoFocus);
 
-    QHBoxLayout* layout = new QHBoxLayout(this);
-    layout->setContentsMargins(0, 0, 0, 0);
+    mBtnMinimize = new QPushButton(this);
+    mBtnMinimize->setFocusPolicy(Qt::NoFocus);
 
-    layout->addWidget(mBtnClose);
+    QHBoxLayout* layout = new QHBoxLayout(this);
+    layout->setContentsMargins(0, 0, 3, 0);
+    layout->setSpacing(3);
+
+    layout->addWidget(mBtnMinimize, 0, Qt::AlignVCenter);
+    layout->addWidget(mBtnClose, 0, Qt::AlignVCenter);
 
     setLayout(layout);
 
-    setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
+    setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Minimum);
 }
 
 WuakeTabWidgetCorner::~WuakeTabWidgetCorner()
 {
 }
+
+void WuakeTabWidgetCorner::resizeEvent(QResizeEvent *event)
+{
+    int h = event->size().height();
+
+    setFixedHeight(h);
+
+    h = (int)(h * 0.75);
+
+    QSize iconSize(h, h);
+    QString style;
+
+    mBtnMinimize->setFixedSize(iconSize);
+    style.clear();
+    style += "QPushButton {border-image: url(:/res/images/btn_minimize_normal.png)}";
+    style += "QPushButton:hover {border-image: url(:/res/images/btn_minimize_hover.png)}";
+    style += "QPushButton:pressed {border-image: url(:/res/images/btn_minimize_pressed.png)}";
+    mBtnMinimize->setStyleSheet(style);
+
+
+    mBtnClose->setFixedSize(iconSize);
+    style.clear();
+    style += "QPushButton {border-image: url(:/res/images/btn_close_normal.png)}";
+    style += "QPushButton:hover {border-image: url(:/res/images/btn_close_hover.png)}";
+    style += "QPushButton:pressed {border-image: url(:/res/images/btn_close_pressed.png)}";
+    mBtnClose->setStyleSheet(style);
+}
+
 
 
 WuakeTabWidget::WuakeTabWidget(QWidget *parent) :
@@ -49,12 +82,14 @@ WuakeTabWidget::WuakeTabWidget(QWidget *parent) :
     mTabBar->setExpanding(false);
     mTabBar->setDrawBase(false);
     mTabBar->setMovable(true);
+    mTabBar->setUsesScrollButtons(true);
     bottomBarLayout->addWidget(mTabBar, 1, Qt::AlignLeft|Qt::AlignTop);
 
     mCornerWidget = new WuakeTabWidgetCorner(this);
     bottomBarLayout->addWidget(mCornerWidget, 0, Qt::AlignTop);
 
     connect(mCornerWidget->mBtnClose, SIGNAL(released()), this, SLOT(destroy()));
+    connect(mCornerWidget->mBtnMinimize, SIGNAL(released()), parentWidget(), SLOT(hide()));
     connect(mTabBar, SIGNAL(tabBarClicked(int)), this, SLOT(setCurrentPage(int)));
     connect(&mTimer, SIGNAL(timeout()), this, SLOT(onTimeout()));
 }
@@ -144,6 +179,8 @@ void WuakeTabWidget::delPageByIndex(int index)
     mTabBar->removeTab(index);
     mPagesLayout->removeWidget(page);
     delete page;
+
+    if (mIsDestroying) return;
 
     if (mTabBar->count() == index) {
         setCurrentPage(index - 1);

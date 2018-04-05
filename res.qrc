@@ -1,0 +1,14 @@
+<RCC>
+    <qresource prefix="/">
+        <file>res/images/app.png</file>
+        <file>res/images/btn_close_hover.png</file>
+        <file>res/images/btn_close_normal.png</file>
+        <file>res/images/btn_maximize_hover.png</file>
+        <file>res/images/btn_maximize_normal.png</file>
+        <file>res/images/btn_minimize_hover.png</file>
+        <file>res/images/btn_minimize_normal.png</file>
+        <file>res/images/btn_close_pressed.png</file>
+        <file>res/images/btn_maximize_pressed.png</file>
+        <file>res/images/btn_minimize_pressed.png</file>
+    </qresource>
+</RCC>

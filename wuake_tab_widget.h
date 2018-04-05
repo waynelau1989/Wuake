@@ -13,6 +13,10 @@ public:
     ~WuakeTabWidgetCorner();
 
     QPushButton* mBtnClose;
+    QPushButton* mBtnMinimize;
+
+protected:
+    void resizeEvent(QResizeEvent* event);
 };
 
 

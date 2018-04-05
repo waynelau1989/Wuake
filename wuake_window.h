@@ -21,10 +21,12 @@ typedef enum {
 
 class WuakeWindow : public QDialog
 {
+    Q_OBJECT
 public:
     WuakeWindow(QWidget* parent = nullptr);
     ~WuakeWindow();
 
+public slots:
     void show();
     void hide();
 
