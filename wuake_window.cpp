@@ -18,7 +18,7 @@ WuakeWindow::WuakeWindow(QWidget *parent) :
 
     mTrayIcon = new QSystemTrayIcon(this);
     mTrayIcon->setIcon(QIcon(":/res/images/app.png"));
-    mTrayIcon->setToolTip(tr("Wuake\nDrop-down terminal for Windows"));
+    mTrayIcon->setToolTip(QString("Wuake\n") + tr("Drop-down terminal for Windows"));
     QMenu* menu = new QMenu(this);
     mExitAct = menu->addAction(tr("Exit"));
     mTrayIcon->setContextMenu(menu);
@@ -112,7 +112,7 @@ void WuakeWindow::initHotkeys()
         if (hotkey->isRegistered()) {
             connect(hotkey, &QHotkey::activated, this, &WuakeWindow::onHotkey);
         } else {
-            QMessageBox::warning(this, tr("Warn"), QString(tr("Register hotkey %1 failed!").arg(it.value())));
+            QMessageBox::warning(this, tr("Warn"), tr("Register global hotkey") + QString(" [%1] ").arg(it.value()) + tr("failed!"));
         }
     }
 

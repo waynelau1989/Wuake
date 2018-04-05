@@ -31,6 +31,8 @@ msvc: {
     LIBS += -luser32
 }
 
+TRANSLATIONS = $$PWD/translations/wuake_zh.ts
+
 include($$PWD/QHotkey/qhotkey.pri)
 
 SOURCES += \

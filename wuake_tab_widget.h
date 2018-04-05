@@ -8,6 +8,7 @@
 
 class WuakeTabWidgetCorner : public QWidget
 {
+    Q_OBJECT
 public:
     WuakeTabWidgetCorner(QWidget* parent = nullptr);
     ~WuakeTabWidgetCorner();
