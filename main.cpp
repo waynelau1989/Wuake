@@ -1,11 +1,14 @@
-﻿#include <QApplication>
-#include <QTranslator>
+﻿#include <QTranslator>
 #include <QLocale>
+#include "single_application.h"
 #include "wuake_window.h"
 
 int main(int argc, char *argv[])
 {
-    QApplication a(argc, argv);
+    SingleApplication a(argc, argv);
+    if (a.isRunning()) {
+        return 0;
+    }
 
     QTranslator translator;
     translator.load(QLocale(), "wuake", "_", "translations");
@@ -13,6 +16,8 @@ int main(int argc, char *argv[])
 
     WuakeWindow ww;
     ww.show();
+
+    QObject::connect(&a, &SingleApplication::onNewInstance, &ww, &WuakeWindow::show);
 
     return a.exec();
 }

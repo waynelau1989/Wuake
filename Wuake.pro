@@ -4,7 +4,8 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
+QT       += core gui network
+CONFIG += c++11
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -39,13 +40,15 @@ SOURCES += \
         main.cpp \
     wuake_tab_widget.cpp \
     wuake_window.cpp \
-    wuake_tab_page.cpp
+    wuake_tab_page.cpp \
+    single_application.cpp
 
 HEADERS += \
     wuake_window.h \
     wuake_tab_widget.h \
     wuake_tab_page.h \
-    image_button.h
+    image_button.h \
+    single_application.h
 
 RESOURCES += \
     res.qrc
