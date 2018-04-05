@@ -14,7 +14,7 @@ WuakeWindow::WuakeWindow(QWidget *parent) :
     QDialog(parent, Qt::ToolTip | Qt::FramelessWindowHint)
     //QDialog(parent)
 {
-    resize(819, 475);
+    //resize(819, 475);
 
     mTrayIcon = new QSystemTrayIcon(this);
     mTrayIcon->setIcon(QIcon(":/res/images/app.png"));
