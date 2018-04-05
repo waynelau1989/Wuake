@@ -85,6 +85,8 @@ void WuakeWindow::updateAnimRect()
     int x = (screenSize.right() - w)/2;
     int y = 0;
 
+    move(x, y);
+
     QRect rectStart(x, y - h, w, h);
     QRect rectEnd(x, y, w, h);
 
@@ -149,6 +151,10 @@ void WuakeWindow::onHotkey()
         break;
     case HOTKEY_MOVE_ACTIVE_TAB_RIGHT:
         mTabWidget->moveToRight();
+        break;
+        //disable warning in gcc
+    case HOTKEY_NONE:
+    case HOTKEY_SHOW_HIDE:
         break;
     }
 }

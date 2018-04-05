@@ -24,9 +24,11 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 RC_FILE += $$PWD/app.rc
 
+DEFINES += MBCS
+DEFINES -= UNICODE
+DEFINES -= _UNICODE
 msvc: {
     LIBS += -luser32
-    DEFINES -= UNICODE
 }
 
 include($$PWD/QHotkey/qhotkey.pri)
