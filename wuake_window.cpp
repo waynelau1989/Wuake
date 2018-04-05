@@ -5,6 +5,7 @@
 #include <QTabBar>
 #include <QKeySequence>
 #include <QRect>
+#include <QMenu>
 #include "QHotkey"
 #include "wuake_window.h"
 #include "wuake_tab_page.h"
@@ -14,6 +15,18 @@ WuakeWindow::WuakeWindow(QWidget *parent) :
     //QDialog(parent)
 {
     resize(819, 475);
+
+    mTrayIcon = new QSystemTrayIcon(this);
+    mTrayIcon->setIcon(QIcon(":/res/images/app.png"));
+    mTrayIcon->setToolTip(tr("Wuake\nDrop-down terminal for Windows"));
+    QMenu* menu = new QMenu(this);
+    mExitAct = menu->addAction(tr("Exit"));
+    mTrayIcon->setContextMenu(menu);
+    mTrayIcon->show();
+
+    connect(menu, &QMenu::triggered, this, &WuakeWindow::onAction);
+    connect(mTrayIcon, &QSystemTrayIcon::activated, this, &WuakeWindow::onTrayActive);
+
     mTabWidget = new WuakeTabWidget(this);
 
     QVBoxLayout* layoutRoot = new QVBoxLayout(this);
@@ -29,6 +42,24 @@ WuakeWindow::WuakeWindow(QWidget *parent) :
 
 WuakeWindow::~WuakeWindow()
 {
+}
+
+void WuakeWindow::show()
+{
+    if (!isHidden()) return;
+
+    QDialog::show();
+    mShowAnim.start();
+}
+
+void WuakeWindow::hide()
+{
+    if (isHidden()) return;
+    if (mShowAnim.state() == QAbstractAnimation::Running ||
+        mHideAnim.state() == QAbstractAnimation::Running) {
+        return;
+    }
+    mHideAnim.start();
 }
 
 void WuakeWindow::initAnim()
@@ -122,22 +153,22 @@ void WuakeWindow::onHotkey()
     }
 }
 
-void WuakeWindow::show()
+void WuakeWindow::onAction(QAction *action)
 {
-    if (!isHidden()) return;
-
-    QDialog::show();
-    mShowAnim.start();
+    if (action == mExitAct) {
+        mTabWidget->closeAll();
+    }
 }
 
-void WuakeWindow::hide()
+void WuakeWindow::onTrayActive(QSystemTrayIcon::ActivationReason reason)
 {
-    if (isHidden()) return;
-    if (mShowAnim.state() == QAbstractAnimation::Running ||
-        mHideAnim.state() == QAbstractAnimation::Running) {
-        return;
+    if (QSystemTrayIcon::Trigger == reason) {
+        if (isHidden()) {
+            show();
+        } else {
+            hide();
+        }
     }
-    mHideAnim.start();
 }
 
 void WuakeWindow::resizeEvent(QResizeEvent *event)

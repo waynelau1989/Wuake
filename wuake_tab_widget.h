@@ -44,7 +44,7 @@ public:
 public slots:
     void setCurrentPage(int index);
     void onPageState(WuakePageState state);
-    void destroy();
+    void closeAll();
 
 private slots:
     void onTimeout();

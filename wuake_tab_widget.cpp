@@ -11,9 +11,11 @@ WuakeTabWidgetCorner::WuakeTabWidgetCorner(QWidget *parent) :
 {
     mBtnClose = new QPushButton(this);
     mBtnClose->setFocusPolicy(Qt::NoFocus);
+    mBtnClose->setToolTip(tr("Close all tabs"));
 
     mBtnMinimize = new QPushButton(this);
     mBtnMinimize->setFocusPolicy(Qt::NoFocus);
+    mBtnMinimize->setToolTip(tr("Hide window"));
 
     QHBoxLayout* layout = new QHBoxLayout(this);
     layout->setContentsMargins(0, 0, 3, 0);
@@ -88,7 +90,7 @@ WuakeTabWidget::WuakeTabWidget(QWidget *parent) :
     mCornerWidget = new WuakeTabWidgetCorner(this);
     bottomBarLayout->addWidget(mCornerWidget, 0, Qt::AlignTop);
 
-    connect(mCornerWidget->mBtnClose, SIGNAL(released()), this, SLOT(destroy()));
+    connect(mCornerWidget->mBtnClose, SIGNAL(released()), this, SLOT(closeAll()));
     connect(mCornerWidget->mBtnMinimize, SIGNAL(released()), parentWidget(), SLOT(hide()));
     connect(mTabBar, SIGNAL(tabBarClicked(int)), this, SLOT(setCurrentPage(int)));
     connect(&mTimer, SIGNAL(timeout()), this, SLOT(onTimeout()));
@@ -96,7 +98,7 @@ WuakeTabWidget::WuakeTabWidget(QWidget *parent) :
 
 WuakeTabWidget::~WuakeTabWidget()
 {
-    destroy();
+    closeAll();
 }
 
 bool WuakeTabWidget::isValidIndex(int index)
@@ -122,7 +124,7 @@ void WuakeTabWidget::onPageState(WuakePageState state)
     case PAGE_STATE_CLOSE:
         delPage(page);
         if (mIsDestroying) {
-            destroy();
+            closeAll();
         }
         break;
     case PAGE_STATE_START:
@@ -242,7 +244,7 @@ void WuakeTabWidget::moveToRight()
     mTabBar->moveTab(index, index + 1);
 }
 
-void WuakeTabWidget::destroy()
+void WuakeTabWidget::closeAll()
 {
     if (mPagesLayout->isEmpty()) {
         qApp->quit();

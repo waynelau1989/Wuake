@@ -5,6 +5,8 @@
 #include <QString>
 #include <QMap>
 #include <QPropertyAnimation>
+#include <QSystemTrayIcon>
+#include <QAction>
 #include "wuake_tab_widget.h"
 
 typedef enum {
@@ -35,6 +37,8 @@ protected:
 
 protected slots:
     void onHotkey();
+    void onAction(QAction* action);
+    void onTrayActive(QSystemTrayIcon::ActivationReason reason);
 
 private:
     void initHotkeys();
@@ -44,6 +48,8 @@ private:
 private:
     WuakeTabWidget* mTabWidget;
     QMap<HotKeyCode,QString> mHotkeys;
+    QSystemTrayIcon* mTrayIcon;
+    QAction* mExitAct;
 
     QPropertyAnimation mShowAnim;
     QPropertyAnimation mHideAnim;
