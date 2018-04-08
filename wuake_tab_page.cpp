@@ -59,14 +59,23 @@ void WuakeTabPage::onFinished(int exitCode, QProcess::ExitStatus exitStatus)
 
 void WuakeTabPage::onStarted()
 {
+#ifdef UNICODE
+    mHwnd = ::FindWindow(className().toStdWString().data(), titleName().toStdWString().data());
+#else
     mHwnd = ::FindWindow(className().toLocal8Bit().data(), titleName().toLocal8Bit().data());
+#endif
     for (int i=0; i<100 && 0 == mHwnd; ++i) {
         QThread::msleep(5);
+#ifdef UNICODE
+        mHwnd = ::FindWindow(className().toStdWString().data(), titleName().toStdWString().data());
+#else
         mHwnd = ::FindWindow(className().toLocal8Bit().data(), titleName().toLocal8Bit().data());
+#endif
     }
     WId wid = (WId)mHwnd;
     mWindow = QWindow::fromWinId(wid);
     mWidget = QWidget::createWindowContainer(mWindow);
+    mWidget->setFocusPolicy(Qt::StrongFocus);
     mWidget->setFixedSize(mWindow->size());
 
     QVBoxLayout* layout = new QVBoxLayout(this);
@@ -78,14 +87,12 @@ void WuakeTabPage::onStarted()
 
 bool WuakeTabPage::event(QEvent *event)
 {
-    if (event->type() == QEvent::WindowActivate) {
-        requestFocus();
-    }
-    /*
     if (event->type() != QEvent::Paint) {
         qDebug("event:%d", event->type());
     }
-    */
+    if (event->type() == QEvent::WindowActivate) {
+        requestFocus();
+    }
     return QWidget::event(event);
 }
 
