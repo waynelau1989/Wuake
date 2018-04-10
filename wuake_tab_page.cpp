@@ -14,7 +14,7 @@
 WuakeTabPage::WuakeTabPage(QWidget *parent) :
     QWidget(parent),
     mWindow(nullptr),
-    mIsShowing(false)
+    mIsShowing(true)
 {
     mProcess = new QProcess(this);
 
@@ -79,6 +79,7 @@ void WuakeTabPage::show()
 {
     qDebug() << titleName() << ": Show";
     if (!mIsShowing) {
+        ::ShowWindow(mHwnd, SW_RESTORE);
         ::ShowWindow(mHwnd, SW_SHOW);
     }
     mIsShowing = true;
@@ -89,6 +90,7 @@ void WuakeTabPage::hide()
     qDebug() << titleName() << ": Hide";
     if (mIsShowing) {
         updateBackground();
+        ::ShowWindow(mHwnd, SW_MINIMIZE);
         ::ShowWindow(mHwnd, SW_HIDE);
     }
     mIsShowing = false;

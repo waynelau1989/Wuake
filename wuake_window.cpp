@@ -7,6 +7,7 @@
 #include <QRect>
 #include <QMenu>
 #include "QHotkey"
+#include <windows.h>
 #include "wuake_window.h"
 #include "wuake_tab_page.h"
 
@@ -49,7 +50,6 @@ WuakeWindow::~WuakeWindow()
 void WuakeWindow::show()
 {
     if (!isHidden()) return;
-
     QDialog::show();
     mShowAnim.start();
 }
