@@ -2,13 +2,19 @@
 #include <QProcess>
 #include <QThread>
 #include <QVBoxLayout>
+#include <QScreen>
 #include <QFileInfo>
 #include <QDir>
+#include <QMoveEvent>
+#include <QtDebug>
+#include <QTimer>
 #include <Windows.h>
 #include "wuake_tab_page.h"
 
 WuakeTabPage::WuakeTabPage(QWidget *parent) :
-    QWidget(parent)
+    QWidget(parent),
+    mWindow(nullptr),
+    mIsShowing(false)
 {
     mProcess = new QProcess(this);
 
@@ -19,11 +25,17 @@ WuakeTabPage::WuakeTabPage(QWidget *parent) :
 
 WuakeTabPage::~WuakeTabPage()
 {
-    delete mWindow;
+    if (nullptr != mWindow) {
+        delete mWindow;
+        mWindow = nullptr;
+    }
 }
 
 void WuakeTabPage::requestFocus()
 {
+    qDebug("%s:requestFocus", titleName().toLocal8Bit().data());
+    ::SetWindowPos(mHwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+    ::SetActiveWindow(mHwnd);
     ::SetFocus(mHwnd);
 }
 
@@ -44,6 +56,44 @@ bool WuakeTabPage::processRunning()
     return true;
 }
 
+void WuakeTabPage::updatePosition()
+{
+    QPoint p = mapToGlobal(pos());
+    if (nullptr != mWindow && mWindow->position() != p) {
+        mWindow->setPosition(p);
+    }
+}
+
+void WuakeTabPage::updateBackground()
+{
+    QPixmap pixmap = mWindow->screen()->grabWindow(mWId, 0, 0, mWindow->width(), mWindow->height());
+    mBgImg->setPixmap(pixmap);
+}
+
+QWindow* WuakeTabPage::pageWindow()
+{
+    return mWindow;
+}
+
+void WuakeTabPage::show()
+{
+    qDebug() << titleName() << ": Show";
+    if (!mIsShowing) {
+        ::ShowWindow(mHwnd, SW_SHOW);
+    }
+    mIsShowing = true;
+}
+
+void WuakeTabPage::hide()
+{
+    qDebug() << titleName() << ": Hide";
+    if (mIsShowing) {
+        updateBackground();
+        ::ShowWindow(mHwnd, SW_HIDE);
+    }
+    mIsShowing = false;
+}
+
 void WuakeTabPage::onError(QProcess::ProcessError error)
 {
     Q_UNUSED(error);
@@ -57,45 +107,64 @@ void WuakeTabPage::onFinished(int exitCode, QProcess::ExitStatus exitStatus)
     emit stateChanged(PAGE_STATE_CLOSE);
 }
 
-void WuakeTabPage::onStarted()
+HWND findWindow(const QString& className, const QString& titleName)
 {
 #ifdef UNICODE
-    mHwnd = ::FindWindow(className().toStdWString().data(), titleName().toStdWString().data());
+    return ::FindWindow(className.toStdWString().data(), titleName.toStdWString().data());
 #else
-    mHwnd = ::FindWindow(className().toLocal8Bit().data(), titleName().toLocal8Bit().data());
+    return ::FindWindow(className.toLocal8Bit().data(), titleName.toLocal8Bit().data());
 #endif
+
+}
+
+void WuakeTabPage::onStarted()
+{
+    mHwnd = findWindow(className(), titleName());
     for (int i=0; i<100 && 0 == mHwnd; ++i) {
         QThread::msleep(5);
-#ifdef UNICODE
-        mHwnd = ::FindWindow(className().toStdWString().data(), titleName().toStdWString().data());
-#else
-        mHwnd = ::FindWindow(className().toLocal8Bit().data(), titleName().toLocal8Bit().data());
-#endif
+        mHwnd = findWindow(className(), titleName());
     }
-    WId wid = (WId)mHwnd;
-    mWindow = QWindow::fromWinId(wid);
-    mWidget = QWidget::createWindowContainer(mWindow);
-    mWidget->setFocusPolicy(Qt::StrongFocus);
-    mWidget->setFixedSize(mWindow->size());
+    mWId = (WId)mHwnd;
+    mWindow = QWindow::fromWinId(mWId);
 
+    DWORD dwExStyle = ::GetWindowLongW(mHwnd, GWL_EXSTYLE);
+    dwExStyle ^= WS_EX_TOOLWINDOW;
+    ::SetWindowLongW(mHwnd, GWL_EXSTYLE, dwExStyle);
+
+    setFixedSize(mWindow->size());
+
+    //mWidget = QWidget::createWindowContainer(mWindow);
+    //mWidget->setFixedSize(mWindow->size());
+
+    mBgImg = new QLabel(this);
     QVBoxLayout* layout = new QVBoxLayout(this);
     layout->setContentsMargins(0, 0, 0, 0);
-    layout->addWidget(mWidget);
+    layout->addWidget(mBgImg);
+    //layout->addWidget(mWidget);
+
+    QTimer::singleShot(800, this, SLOT(updateBackground()));
 
     emit stateChanged(PAGE_STATE_START);
 }
 
 bool WuakeTabPage::event(QEvent *event)
 {
-    if (event->type() != QEvent::Paint) {
-        qDebug("event:%d", event->type());
+    if (nullptr == mWindow) return QWidget::event(event);
+    QEvent::Type type = event->type();
+    /*
+    if (QEvent::Paint != type) {
+        qDebug("Event Type:%d", event->type());
     }
-    if (event->type() == QEvent::WindowActivate) {
-        requestFocus();
+    */
+    if (QEvent::Show == type) {
+        show();
+        return true;
+    } else if (QEvent::Hide == type) {
+        hide();
+        return true;
     }
     return QWidget::event(event);
 }
-
 
 
 quint64 MinttyTabPage::sCounter = 0;
@@ -128,10 +197,12 @@ void MinttyTabPage::startProcess()
         homeDir = env.value("USERPROFILE");
     }
 
-    QStringList params;
     if (!homeDir.isEmpty()) {
-        params << "--dir" << homeDir;
+        process->setWorkingDirectory(homeDir);
     }
+    QStringList params;
+    QPoint p = mapToGlobal(pos());
+    params << "-p" << QString("%1,%2").arg(p.x()).arg(p.y());
     //params << "-s" << "100,30";
     params << "-B" << "void";
     params << "-t" << titleName();

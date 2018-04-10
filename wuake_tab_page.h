@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include <QWidget>
+#include <QLabel>
 #include <QWindow>
 #include <QProcess>
 #include <QString>
@@ -26,6 +27,14 @@ public:
 
     virtual bool processRunning();
 
+    QWindow* pageWindow();
+
+public slots:
+    void updateBackground();
+    void updatePosition();
+    void show();
+    void hide();
+
 signals:
     void stateChanged(WuakePageState state);
 
@@ -44,10 +53,15 @@ protected:
     QProcess* mProcess;
 
 private:
+    WId mWId;
     HWND mHwnd;
+
+    QLabel* mBgImg;
 
     QWindow* mWindow;
     QWidget* mWidget;
+
+    bool mIsShowing;
 };
 
 

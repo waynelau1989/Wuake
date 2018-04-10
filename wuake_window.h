@@ -39,6 +39,8 @@ protected slots:
     void onHotkey();
     void onAction(QAction* action);
     void onTrayActive(QSystemTrayIcon::ActivationReason reason);
+    void onShowAnimFinish();
+    void onHideAnimFinish();
 
 private:
     void initHotkeys();

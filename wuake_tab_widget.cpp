@@ -66,7 +66,6 @@ WuakeTabWidget::WuakeTabWidget(QWidget *parent) :
     QWidget(parent),
     mIsDestroying(false)
 {
-    setFocusPolicy(Qt::StrongFocus);
     QVBoxLayout* rootLayout = new QVBoxLayout(this);
     rootLayout->setContentsMargins(0, 0, 0, 0);
     rootLayout->setSpacing(0);
@@ -140,9 +139,10 @@ void WuakeTabWidget::onPageState(WuakePageState state)
 void WuakeTabWidget::onTimeout()
 {
     mTimer.stop();
-    parentWidget()->activateWindow();
-    WuakeTabPage* page = reinterpret_cast<WuakeTabPage*>(mPagesLayout->currentWidget());
-    if (nullptr != page) page->requestFocus();
+    WuakeTabPage* page = currentPage();
+    if (nullptr != page) {
+        page->requestFocus();
+    }
 }
 
 void WuakeTabWidget::setCurrentPage(int index)
@@ -254,6 +254,11 @@ void WuakeTabWidget::closeAll()
     mIsDestroying = true;
 }
 
+WuakeTabPage* WuakeTabWidget::currentPage()
+{
+    return dynamic_cast<WuakeTabPage*>(mPagesLayout->currentWidget());
+}
+
 WuakeTabPage* WuakeTabWidget::findPageByIndex(int index)
 {
     WuakeTabPage* page = (WuakeTabPage*)mTabBar->tabData(index).toULongLong();
@@ -273,6 +278,7 @@ int WuakeTabWidget::findIndexByPage(WuakeTabPage *page)
 
 void WuakeTabWidget::focusCurrentPage(int delayMS)
 {
+    parentWidget()->activateWindow();
     if (delayMS < 1) {
         onTimeout();
         return;
@@ -282,4 +288,20 @@ void WuakeTabWidget::focusCurrentPage(int delayMS)
         mTimer.stop();
     }
     mTimer.start(delayMS);
+}
+
+void WuakeTabWidget::showCurrentPage()
+{
+    WuakeTabPage* page = currentPage();
+    if (nullptr != page) {
+        page->show();
+    }
+}
+
+void WuakeTabWidget::hideCurrentPage()
+{
+    WuakeTabPage* page = currentPage();
+    if (nullptr != page) {
+        page->hide();
+    }
 }

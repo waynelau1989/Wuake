@@ -42,7 +42,13 @@ public:
     void moveToLeft();
     void moveToRight();
 
+
+    WuakeTabPage* currentPage();
+
 public slots:
+    void showCurrentPage();
+    void hideCurrentPage();
+    void focusCurrentPage(int delayMS = 200);
     void setCurrentPage(int index);
     void onPageState(WuakePageState state);
     void closeAll();
@@ -54,7 +60,6 @@ private:
     WuakeTabPage* findPageByIndex(int index);
     int findIndexByPage(WuakeTabPage* page);
 
-    void focusCurrentPage(int delayMS = 500);
 
 private:
     QStackedLayout* mPagesLayout;

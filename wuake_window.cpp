@@ -12,9 +12,11 @@
 
 WuakeWindow::WuakeWindow(QWidget *parent) :
     QDialog(parent, Qt::ToolTip | Qt::FramelessWindowHint)
-    //QDialog(parent)
+    //QDialog(parent, Qt::FramelessWindowHint | Qt::Tool)
 {
     //resize(819, 475);
+
+    //setAttribute(Qt::WA_TranslucentBackground, true);
 
     mTrayIcon = new QSystemTrayIcon(this);
     mTrayIcon->setIcon(QIcon(":/res/images/app.png"));
@@ -59,7 +61,18 @@ void WuakeWindow::hide()
         mHideAnim.state() == QAbstractAnimation::Running) {
         return;
     }
+    mTabWidget->hideCurrentPage();
     mHideAnim.start();
+}
+
+void WuakeWindow::onShowAnimFinish()
+{
+    mTabWidget->focusCurrentPage(0);
+}
+
+void WuakeWindow::onHideAnimFinish()
+{
+    QDialog::hide();
 }
 
 void WuakeWindow::initAnim()
@@ -74,11 +87,13 @@ void WuakeWindow::initAnim()
     mHideAnim.setPropertyName("geometry");
     mHideAnim.setDuration(150);
 
-    connect(&mHideAnim, &QPropertyAnimation::finished, this, &QDialog::hide);
+    connect(&mShowAnim, &QPropertyAnimation::finished, this, &WuakeWindow::onShowAnimFinish);
+    connect(&mHideAnim, &QPropertyAnimation::finished, this, &WuakeWindow::onHideAnimFinish);
 }
 
 void WuakeWindow::updateAnimRect()
 {
+    qDebug("updateAnimRect");
     QRect screenSize = QApplication::desktop()->availableGeometry();
     int w = width();
     int h = height();
@@ -86,6 +101,10 @@ void WuakeWindow::updateAnimRect()
     int y = 0;
 
     move(x, y);
+    WuakeTabPage* page = mTabWidget->currentPage();
+    if (nullptr != page) {
+        page->updatePosition();
+    }
 
     QRect rectStart(x, y - h, w, h);
     QRect rectEnd(x, y, w, h);
@@ -127,7 +146,6 @@ void WuakeWindow::onHotkey()
     if (HOTKEY_SHOW_HIDE == keyCode) {
         if (isHidden()) {
             show();
-            activateWindow();
         } else {
             hide();
         }
@@ -141,9 +159,11 @@ void WuakeWindow::onHotkey()
         mTabWidget->newTab();
         break;
     case HOTKEY_SWITCH_LEFT_TAB:
+        activateWindow();
         mTabWidget->switchToLeft();
         break;
     case HOTKEY_SWITCH_RIGHT_TAB:
+        activateWindow();
         mTabWidget->switchToRight();
         break;
     case HOTKEY_MOVE_ACTIVE_TAB_LEFT:
