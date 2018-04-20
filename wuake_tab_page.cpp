@@ -4,6 +4,8 @@
 #include <QVBoxLayout>
 #include <QFileInfo>
 #include <QDir>
+#include <QtDebug>
+#include <QMessageBox>
 #include <Windows.h>
 #include "wuake_tab_page.h"
 
@@ -46,31 +48,35 @@ bool WuakeTabPage::processRunning()
 
 void WuakeTabPage::onError(QProcess::ProcessError error)
 {
-    Q_UNUSED(error);
+    qWarning() << "Process error:" << error;
+    QMessageBox::critical(this, "Error", "Open program [" + mProcess->program() + "] failed!");
     emit stateChanged(PAGE_STATE_ERROR);
 }
 
 void WuakeTabPage::onFinished(int exitCode, QProcess::ExitStatus exitStatus)
 {
-    Q_UNUSED(exitCode);
-    Q_UNUSED(exitStatus);
+    qDebug() << "exitCode:" << exitCode << ", exitStatus:" << exitStatus;
     emit stateChanged(PAGE_STATE_CLOSE);
+}
+
+HWND findWindow(const QString& className, const QString& titleName)
+{
+    HWND hwnd;
+#ifdef UNICODE
+    hwnd = ::FindWindow(className.toStdWString().data(), titleName.toStdWString().data());
+#else
+    hwnd = ::FindWindow(className.toLocal8Bit().data(), titleName.toLocal8Bit().data());
+#endif
+    return hwnd;
 }
 
 void WuakeTabPage::onStarted()
 {
-#ifdef UNICODE
-    mHwnd = ::FindWindow(className().toStdWString().data(), titleName().toStdWString().data());
-#else
-    mHwnd = ::FindWindow(className().toLocal8Bit().data(), titleName().toLocal8Bit().data());
-#endif
+    qDebug() << "onStarted";
+    mHwnd = findWindow(className(), titleName());
     for (int i=0; i<100 && 0 == mHwnd; ++i) {
         QThread::msleep(5);
-#ifdef UNICODE
-        mHwnd = ::FindWindow(className().toStdWString().data(), titleName().toStdWString().data());
-#else
-        mHwnd = ::FindWindow(className().toLocal8Bit().data(), titleName().toLocal8Bit().data());
-#endif
+        mHwnd = findWindow(className(), titleName());
     }
     WId wid = (WId)mHwnd;
     mWindow = QWindow::fromWinId(wid);
@@ -87,9 +93,6 @@ void WuakeTabPage::onStarted()
 
 bool WuakeTabPage::event(QEvent *event)
 {
-    if (event->type() != QEvent::Paint) {
-        qDebug("event:%d", event->type());
-    }
     if (event->type() == QEvent::WindowActivate) {
         requestFocus();
     }
@@ -113,11 +116,6 @@ MinttyTabPage::~MinttyTabPage()
 
 void MinttyTabPage::startProcess()
 {
-    QFileInfo minttyInfo(sMinttyPath);
-    if (!minttyInfo.exists()) {
-        return;
-    }
-
     QProcess* process = mProcess;
     QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
     env.insert("ConEmuPID", "-1");
@@ -128,10 +126,11 @@ void MinttyTabPage::startProcess()
         homeDir = env.value("USERPROFILE");
     }
 
-    QStringList params;
     if (!homeDir.isEmpty()) {
-        params << "--dir" << homeDir;
+        process->setWorkingDirectory(homeDir);
     }
+
+    QStringList params;
     //params << "-s" << "100,30";
     params << "-B" << "void";
     params << "-t" << titleName();
@@ -139,6 +138,7 @@ void MinttyTabPage::startProcess()
     params << "-";
     process->start(sMinttyPath, params);
 }
+
 
 QString MinttyTabPage::className()
 {
@@ -182,4 +182,5 @@ void MinttyTabPage::findMintty()
     QDir tmp = gitInfo.absoluteDir();
     tmp.cdUp();
     sMinttyPath = tmp.absolutePath() + "/usr/bin/mintty.exe";
+    //sMinttyPath = "mintty.exe";
 }

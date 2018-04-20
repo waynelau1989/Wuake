@@ -121,6 +121,7 @@ void WuakeTabWidget::onPageState(WuakePageState state)
 {
     WuakeTabPage* page = qobject_cast<WuakeTabPage*>(sender());
     switch (state) {
+    case PAGE_STATE_ERROR:
     case PAGE_STATE_CLOSE:
         delPage(page);
         if (mIsDestroying) {
