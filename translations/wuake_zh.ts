@@ -2,14 +2,32 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="zh_CN">
 <context>
+    <name>WuakeTabPage</name>
+    <message>
+        <location filename="../wuake_tab_page.cpp" line="52"/>
+        <source>Error</source>
+        <translation>错误</translation>
+    </message>
+    <message>
+        <location filename="../wuake_tab_page.cpp" line="52"/>
+        <source>Open program [</source>
+        <translation>打开程序[</translation>
+    </message>
+    <message>
+        <location filename="../wuake_tab_page.cpp" line="52"/>
+        <source>] failed!</source>
+        <translation>]失败！</translation>
+    </message>
+</context>
+<context>
     <name>WuakeTabWidgetCorner</name>
     <message>
-        <location filename="../../../../../Projects/qt/Wuake/wuake_tab_widget.cpp" line="14"/>
+        <location filename="../wuake_tab_widget.cpp" line="14"/>
         <source>Close all tabs</source>
         <translation>关闭所有标签页</translation>
     </message>
     <message>
-        <location filename="../../../../../Projects/qt/Wuake/wuake_tab_widget.cpp" line="18"/>
+        <location filename="../wuake_tab_widget.cpp" line="18"/>
         <source>Hide window</source>
         <translation>隐藏窗口</translation>
     </message>
@@ -22,27 +40,27 @@ Drop-down terminal for Windows</source>
         <translation type="vanished">Wuake\\nWindows下拉式终端</translation>
     </message>
     <message>
-        <location filename="../../../../../Projects/qt/Wuake/wuake_window.cpp" line="21"/>
+        <location filename="../wuake_window.cpp" line="21"/>
         <source>Drop-down terminal for Windows</source>
         <translation>Windows下拉式终端</translation>
     </message>
     <message>
-        <location filename="../../../../../Projects/qt/Wuake/wuake_window.cpp" line="23"/>
+        <location filename="../wuake_window.cpp" line="23"/>
         <source>Exit</source>
         <translation>退出</translation>
     </message>
     <message>
-        <location filename="../../../../../Projects/qt/Wuake/wuake_window.cpp" line="115"/>
+        <location filename="../wuake_window.cpp" line="115"/>
         <source>Warn</source>
         <translation>警告</translation>
     </message>
     <message>
-        <location filename="../../../../../Projects/qt/Wuake/wuake_window.cpp" line="115"/>
+        <location filename="../wuake_window.cpp" line="115"/>
         <source>Register global hotkey</source>
         <translation>注册全局热键</translation>
     </message>
     <message>
-        <location filename="../../../../../Projects/qt/Wuake/wuake_window.cpp" line="115"/>
+        <location filename="../wuake_window.cpp" line="115"/>
         <source>failed!</source>
         <translation>失败！</translation>
     </message>

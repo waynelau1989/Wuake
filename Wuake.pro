@@ -52,3 +52,6 @@ HEADERS += \
 
 RESOURCES += \
     res.qrc
+
+DISTFILES += \
+    translations/wuake_zh.ts

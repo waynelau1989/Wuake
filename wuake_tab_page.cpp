@@ -49,7 +49,7 @@ bool WuakeTabPage::processRunning()
 void WuakeTabPage::onError(QProcess::ProcessError error)
 {
     qWarning() << "Process error:" << error;
-    QMessageBox::critical(this, "Error", "Open program [" + mProcess->program() + "] failed!");
+    QMessageBox::critical(this, tr("Error"), tr("Open program [") + mProcess->program() + tr("] failed!"));
     emit stateChanged(PAGE_STATE_ERROR);
 }
 
