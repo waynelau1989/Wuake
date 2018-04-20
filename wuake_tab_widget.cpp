@@ -110,7 +110,7 @@ WuakeTabWidget::WuakeTabWidget(QWidget *parent) :
     rootLayout->addLayout(bottomBarLayout);
 
     mTabBar = new QTabBar(this);
-    mTabBar->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Maximum);
+    //mTabBar->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Maximum);
     mTabBar->setExpanding(false);
     mTabBar->setDrawBase(false);
     mTabBar->setMovable(true);
