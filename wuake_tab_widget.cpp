@@ -3,6 +3,7 @@
 #include <QHBoxLayout>
 #include <QVariant>
 #include <QResizeEvent>
+#include <QtDebug>
 #include "wuake_tab_widget.h"
 
 
@@ -32,6 +33,35 @@ WuakeTabWidgetCorner::WuakeTabWidgetCorner(QWidget *parent) :
 WuakeTabWidgetCorner::~WuakeTabWidgetCorner()
 {
 }
+
+
+WuakeTabContexMenu::WuakeTabContexMenu(WuakeTabWidget *tabWidget) :
+    QMenu(tabWidget),
+    mTabWidget(tabWidget),
+    mTabIndex(-1)
+{
+    mCloseAct = addAction(tr("Close"));
+
+    connect(this, SIGNAL(triggered(QAction*)), this, SLOT(onTriggered(QAction*)));
+}
+
+WuakeTabContexMenu::~WuakeTabContexMenu()
+{
+}
+
+void WuakeTabContexMenu::setTabIndex(int index)
+{
+    mTabIndex = index;
+}
+
+void WuakeTabContexMenu::onTriggered(QAction *action)
+{
+    if (mCloseAct == action) {
+        mTabWidget->closePage(mTabIndex);
+    }
+}
+
+
 
 void WuakeTabWidgetCorner::resizeEvent(QResizeEvent *event)
 {
@@ -90,9 +120,14 @@ WuakeTabWidget::WuakeTabWidget(QWidget *parent) :
     mCornerWidget = new WuakeTabWidgetCorner(this);
     bottomBarLayout->addWidget(mCornerWidget, 0, Qt::AlignTop);
 
+    mContexMenu = new WuakeTabContexMenu(this);
+    mTabBar->setContextMenuPolicy(Qt::CustomContextMenu);
+    mTabBar->installEventFilter(this);
+
     connect(mCornerWidget->mBtnClose, SIGNAL(released()), this, SLOT(closeAll()));
     connect(mCornerWidget->mBtnMinimize, SIGNAL(released()), parentWidget(), SLOT(hide()));
     connect(mTabBar, SIGNAL(tabBarClicked(int)), this, SLOT(setCurrentPage(int)));
+    connect(mTabBar, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(onMenuRequested(QPoint)));
     connect(&mTimer, SIGNAL(timeout()), this, SLOT(onTimeout()));
 }
 
@@ -146,6 +181,35 @@ void WuakeTabWidget::onTimeout()
     if (nullptr != page) page->requestFocus();
 }
 
+void WuakeTabWidget::onMenuRequested(const QPoint &pos)
+{
+    qDebug() << "contextMenuRequest";
+    currentPage()->enableFocus(true);
+    int index = mTabBar->tabAt(pos);
+    if (!isValidIndex(index)) return;
+    mContexMenu->setTabIndex(index);
+    mContexMenu->popup(mTabBar->mapToGlobal(pos));
+}
+
+bool WuakeTabWidget::eventFilter(QObject *watched, QEvent *event)
+{
+    QEvent::Type eventType = event->type();
+    //qDebug() << "Tab Event:" << eventType;
+    if (mTabBar == watched) {
+        if (QEvent::MouseButtonPress == eventType ||
+            QEvent::MouseButtonRelease == eventType)
+        {
+            QMouseEvent* mouseEvent = (QMouseEvent*)(event);
+            if (mouseEvent->button() == Qt::RightButton) {
+                currentPage()->enableFocus(false);
+            }
+        } else if (QEvent::Leave == eventType) {
+            currentPage()->enableFocus(true);
+        }
+    }
+    return false;
+}
+
 void WuakeTabWidget::setCurrentPage(int index)
 {
     //qDebug("setCurrentPage:%d", index);
@@ -159,7 +223,9 @@ void WuakeTabWidget::setCurrentPage(int index)
     if (page != mPagesLayout->currentWidget()) {
         mPagesLayout->setCurrentWidget(page);
     }
-    focusCurrentPage(250);
+    if (page->isEnableFocus()) {
+        focusCurrentPage(250);
+    }
 }
 
 void WuakeTabWidget::addPage(const QString &title, WuakeTabPage *page)
@@ -259,6 +325,11 @@ WuakeTabPage* WuakeTabWidget::findPageByIndex(int index)
 {
     WuakeTabPage* page = (WuakeTabPage*)mTabBar->tabData(index).toULongLong();
     return page;
+}
+
+WuakeTabPage* WuakeTabWidget::currentPage()
+{
+    return (WuakeTabPage*)mPagesLayout->currentWidget();
 }
 
 int WuakeTabWidget::findIndexByPage(WuakeTabPage *page)

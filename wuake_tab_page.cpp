@@ -10,7 +10,8 @@
 #include "wuake_tab_page.h"
 
 WuakeTabPage::WuakeTabPage(QWidget *parent) :
-    QWidget(parent)
+    QWidget(parent),
+    mEnFocus(true)
 {
     mProcess = new QProcess(this);
 
@@ -26,7 +27,10 @@ WuakeTabPage::~WuakeTabPage()
 
 void WuakeTabPage::requestFocus()
 {
-    ::SetFocus(mHwnd);
+    if (mEnFocus) {
+        qDebug() << titleName() << " requestFocus";
+        ::SetFocus(mHwnd);
+    }
 }
 
 void WuakeTabPage::close()
@@ -44,6 +48,16 @@ bool WuakeTabPage::processRunning()
         return false;
     }
     return true;
+}
+
+void WuakeTabPage::enableFocus(bool enable)
+{
+    mEnFocus = enable;
+}
+
+bool WuakeTabPage::isEnableFocus()
+{
+    return mEnFocus;
 }
 
 void WuakeTabPage::onError(QProcess::ProcessError error)
@@ -93,12 +107,15 @@ void WuakeTabPage::onStarted()
 
 bool WuakeTabPage::event(QEvent *event)
 {
-    if (event->type() == QEvent::WindowActivate) {
+    QEvent::Type eventType = event->type();
+    if (QEvent::Paint != eventType) {
+        //qDebug() << " Event:" << eventType;
+    }
+    if (QEvent::WindowActivate == eventType) {
         requestFocus();
     }
     return QWidget::event(event);
 }
-
 
 
 quint64 MinttyTabPage::sCounter = 0;

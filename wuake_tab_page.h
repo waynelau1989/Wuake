@@ -11,6 +11,7 @@ typedef enum {
     PAGE_STATE_ERROR
 } WuakePageState;
 
+
 class WuakeTabPage : public QWidget
 {
     Q_OBJECT
@@ -26,6 +27,10 @@ public:
 
     virtual bool processRunning();
 
+    void enableFocus(bool enable);
+
+    bool isEnableFocus();
+
 signals:
     void stateChanged(WuakePageState state);
 
@@ -35,10 +40,9 @@ protected slots:
     void onStarted();
 
 protected:
+    bool event(QEvent *event);
     virtual QString className() = 0;
     virtual QString titleName() = 0;
-
-    bool event(QEvent *event);
 
 protected:
     QProcess* mProcess;
@@ -48,6 +52,8 @@ private:
 
     QWindow* mWindow;
     QWidget* mWidget;
+
+    bool mEnFocus;
 };
 
 
@@ -62,6 +68,7 @@ public:
 protected:
     QString className();
     QString titleName();
+
 
 private:
     void findMintty();

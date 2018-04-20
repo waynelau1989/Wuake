@@ -3,6 +3,7 @@
 #include <QStackedLayout>
 #include <QPushButton>
 #include <QTabBar>
+#include <QMenu>
 #include <QTimer>
 #include "wuake_tab_page.h"
 
@@ -18,6 +19,26 @@ public:
 
 protected:
     void resizeEvent(QResizeEvent* event);
+};
+
+class WuakeTabWidget;
+class WuakeTabContexMenu : public QMenu
+{
+    Q_OBJECT
+public:
+    WuakeTabContexMenu(WuakeTabWidget* tabWidget);
+    ~WuakeTabContexMenu();
+
+    void setTabIndex(int index);
+
+protected slots:
+    void onTriggered(QAction* action);
+
+private:
+    WuakeTabWidget* mTabWidget;
+    QAction* mCloseAct;
+
+    int mTabIndex;
 };
 
 
@@ -49,9 +70,14 @@ public slots:
 
 private slots:
     void onTimeout();
+    void onMenuRequested(const QPoint& pos);
+
+protected:
+    bool eventFilter(QObject *watched, QEvent *event);
 
 private:
     WuakeTabPage* findPageByIndex(int index);
+    WuakeTabPage* currentPage();
     int findIndexByPage(WuakeTabPage* page);
 
     void focusCurrentPage(int delayMS = 500);
@@ -63,6 +89,7 @@ private:
     QTimer mTimer;
 
     WuakeTabWidgetCorner* mCornerWidget;
+    WuakeTabContexMenu* mContexMenu;
 
     bool mIsDestroying;
 };
