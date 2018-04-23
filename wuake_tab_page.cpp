@@ -60,6 +60,11 @@ bool WuakeTabPage::isEnableFocus()
     return mEnFocus;
 }
 
+bool WuakeTabPage::isFocused()
+{
+    return ::GetFocus() == mHwnd;
+}
+
 void WuakeTabPage::onError(QProcess::ProcessError error)
 {
     qWarning() << "Process error:" << error;

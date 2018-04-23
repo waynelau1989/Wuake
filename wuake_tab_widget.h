@@ -63,6 +63,9 @@ public:
     void moveToLeft();
     void moveToRight();
 
+signals:
+    void focusLost();
+
 public slots:
     void setCurrentPage(int index);
     void onPageState(WuakePageState state);
@@ -71,9 +74,11 @@ public slots:
 private slots:
     void onTimeout();
     void onMenuRequested(const QPoint& pos);
+    void onCheckFocus();
 
 protected:
     bool eventFilter(QObject *watched, QEvent *event);
+    bool event(QEvent *event);
 
 private:
     WuakeTabPage* findPageByIndex(int index);
@@ -87,6 +92,7 @@ private:
     QTabBar* mTabBar;
 
     QTimer mTimer;
+    QTimer mFocusTimer;
 
     WuakeTabWidgetCorner* mCornerWidget;
     WuakeTabContexMenu* mContexMenu;

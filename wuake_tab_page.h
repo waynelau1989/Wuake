@@ -31,6 +31,8 @@ public:
 
     bool isEnableFocus();
 
+    bool isFocused();
+
 signals:
     void stateChanged(WuakePageState state);
 

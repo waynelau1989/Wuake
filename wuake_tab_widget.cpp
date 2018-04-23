@@ -35,34 +35,6 @@ WuakeTabWidgetCorner::~WuakeTabWidgetCorner()
 }
 
 
-WuakeTabContexMenu::WuakeTabContexMenu(WuakeTabWidget *tabWidget) :
-    QMenu(tabWidget),
-    mTabWidget(tabWidget),
-    mTabIndex(-1)
-{
-    mCloseAct = addAction(tr("Close"));
-
-    connect(this, SIGNAL(triggered(QAction*)), this, SLOT(onTriggered(QAction*)));
-}
-
-WuakeTabContexMenu::~WuakeTabContexMenu()
-{
-}
-
-void WuakeTabContexMenu::setTabIndex(int index)
-{
-    mTabIndex = index;
-}
-
-void WuakeTabContexMenu::onTriggered(QAction *action)
-{
-    if (mCloseAct == action) {
-        mTabWidget->closePage(mTabIndex);
-    }
-}
-
-
-
 void WuakeTabWidgetCorner::resizeEvent(QResizeEvent *event)
 {
     int h = event->size().height();
@@ -88,6 +60,33 @@ void WuakeTabWidgetCorner::resizeEvent(QResizeEvent *event)
     style += "QPushButton:hover {border-image: url(:/res/images/btn_close_hover.png)}";
     style += "QPushButton:pressed {border-image: url(:/res/images/btn_close_pressed.png)}";
     mBtnClose->setStyleSheet(style);
+}
+
+
+WuakeTabContexMenu::WuakeTabContexMenu(WuakeTabWidget *tabWidget) :
+    QMenu(tabWidget),
+    mTabWidget(tabWidget),
+    mTabIndex(-1)
+{
+    mCloseAct = addAction(tr("Close"));
+
+    connect(this, SIGNAL(triggered(QAction*)), this, SLOT(onTriggered(QAction*)));
+}
+
+WuakeTabContexMenu::~WuakeTabContexMenu()
+{
+}
+
+void WuakeTabContexMenu::setTabIndex(int index)
+{
+    mTabIndex = index;
+}
+
+void WuakeTabContexMenu::onTriggered(QAction *action)
+{
+    if (mCloseAct == action) {
+        mTabWidget->closePage(mTabIndex);
+    }
 }
 
 
@@ -129,6 +128,9 @@ WuakeTabWidget::WuakeTabWidget(QWidget *parent) :
     connect(mTabBar, SIGNAL(tabBarClicked(int)), this, SLOT(setCurrentPage(int)));
     connect(mTabBar, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(onMenuRequested(QPoint)));
     connect(&mTimer, SIGNAL(timeout()), this, SLOT(onTimeout()));
+
+    mFocusTimer.setInterval(250);
+    connect(&mFocusTimer, &QTimer::timeout, this, &WuakeTabWidget::onCheckFocus);
 }
 
 WuakeTabWidget::~WuakeTabWidget()
@@ -177,8 +179,25 @@ void WuakeTabWidget::onTimeout()
 {
     mTimer.stop();
     parentWidget()->activateWindow();
-    WuakeTabPage* page = reinterpret_cast<WuakeTabPage*>(mPagesLayout->currentWidget());
-    if (nullptr != page) page->requestFocus();
+    WuakeTabPage* page = currentPage();
+    if (nullptr != page) {
+        page->requestFocus();
+        mFocusTimer.start();
+    }
+}
+
+void WuakeTabWidget::onCheckFocus()
+{
+    WuakeTabPage* page = currentPage();
+    if (nullptr == page) {
+        mFocusTimer.stop();
+        return;
+    }
+    if (!page->isFocused()) {
+        mFocusTimer.stop();
+        emit focusLost();
+    }
+    //qDebug() << "Focused:" << page->isFocused();
 }
 
 void WuakeTabWidget::onMenuRequested(const QPoint &pos)
@@ -210,6 +229,20 @@ bool WuakeTabWidget::eventFilter(QObject *watched, QEvent *event)
     return false;
 }
 
+bool WuakeTabWidget::event(QEvent *event)
+{
+    QEvent::Type eventType = event->type();
+    if (QEvent::WindowActivate == eventType) {
+        if (!mPagesLayout->isEmpty()) {
+            mFocusTimer.start();
+        }
+    } else if (QEvent::WindowDeactivate == eventType && mPagesLayout->isEmpty()) {
+        emit focusLost();
+    }
+    //qDebug() << "TabWidget Event:" << eventType;
+    return QWidget::event(event);
+}
+
 void WuakeTabWidget::setCurrentPage(int index)
 {
     //qDebug("setCurrentPage:%d", index);
@@ -223,6 +256,7 @@ void WuakeTabWidget::setCurrentPage(int index)
     if (page != mPagesLayout->currentWidget()) {
         mPagesLayout->setCurrentWidget(page);
     }
+    mFocusTimer.stop();
     if (page->isEnableFocus()) {
         focusCurrentPage(250);
     }

@@ -29,6 +29,8 @@ WuakeWindow::WuakeWindow(QWidget *parent) :
 
     mTabWidget = new WuakeTabWidget(this);
 
+    connect(mTabWidget, &WuakeTabWidget::focusLost, this, &WuakeWindow::hide);
+
     QVBoxLayout* layoutRoot = new QVBoxLayout(this);
     layoutRoot->setContentsMargins(0, 0, 0, 0);
     layoutRoot->addWidget(mTabWidget);
