@@ -1,4 +1,5 @@
-﻿#include <QApplication>
+﻿#include <QtDebug>
+#include <QApplication>
 #include <QDesktopWidget>
 #include <QMessageBox>
 #include <QVBoxLayout>
@@ -51,6 +52,7 @@ void WuakeWindow::show()
     if (!isHidden()) return;
 
     QDialog::show();
+
     mShowAnim.start();
 }
 
@@ -69,12 +71,14 @@ void WuakeWindow::initAnim()
     updateAnimRect();
 
     mShowAnim.setTargetObject(this);
-    mShowAnim.setPropertyName("geometry");
-    mShowAnim.setDuration(150);
+    mShowAnim.setPropertyName("pos");
+    mShowAnim.setDuration(170);
+    mShowAnim.setEasingCurve(QEasingCurve::OutQuint);
 
     mHideAnim.setTargetObject(this);
-    mHideAnim.setPropertyName("geometry");
-    mHideAnim.setDuration(150);
+    mHideAnim.setPropertyName("pos");
+    mHideAnim.setDuration(170);
+    mHideAnim.setEasingCurve(QEasingCurve::InQuint);
 
     connect(&mHideAnim, &QPropertyAnimation::finished, this, &QDialog::hide);
 }
@@ -89,14 +93,14 @@ void WuakeWindow::updateAnimRect()
 
     move(x, y);
 
-    QRect rectStart(x, y - h, w, h);
-    QRect rectEnd(x, y, w, h);
+    QPoint posStart(x, y - h);
+    QPoint posEnd(x, y);
 
-    mShowAnim.setStartValue(rectStart);
-    mShowAnim.setEndValue(rectEnd);
+    mShowAnim.setStartValue(posStart);
+    mShowAnim.setEndValue(posEnd);
 
-    mHideAnim.setStartValue(rectEnd);
-    mHideAnim.setEndValue(rectStart);
+    mHideAnim.setStartValue(posEnd);
+    mHideAnim.setEndValue(posStart);
 }
 
 void WuakeWindow::initHotkeys()
