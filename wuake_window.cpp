@@ -1,5 +1,6 @@
 ﻿#include <QtDebug>
 #include <QApplication>
+#include <QGuiApplication>
 #include <QDesktopWidget>
 #include <QMessageBox>
 #include <QVBoxLayout>
@@ -7,6 +8,7 @@
 #include <QKeySequence>
 #include <QRect>
 #include <QMenu>
+#include <QScreen>
 #include "QHotkey"
 #include "wuake_window.h"
 #include "wuake_tab_page.h"
@@ -85,10 +87,15 @@ void WuakeWindow::initAnim()
 
 void WuakeWindow::updateAnimRect()
 {
-    QRect screenSize = QApplication::desktop()->availableGeometry();
+    QScreen *screen = QGuiApplication::screenAt(QCursor::pos());
+    if (nullptr == screen) {
+        qWarning() << "Cannot find screen!";
+        return;
+    }
+
     int w = width();
     int h = height();
-    int x = (screenSize.right() - w)/2;
+    int x = (screen->size().width() - w)/2;
     int y = 0;
 
     move(x, y);
