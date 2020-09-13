@@ -14,7 +14,8 @@
 #include "wuake_tab_page.h"
 
 WuakeWindow::WuakeWindow(QWidget *parent) :
-    QDialog(parent, Qt::ToolTip | Qt::FramelessWindowHint)
+    QDialog(parent, Qt::ToolTip | Qt::FramelessWindowHint),
+    mIsShowing(false)
     //QDialog(parent)
 {
     //resize(819, 475);
@@ -51,7 +52,7 @@ WuakeWindow::~WuakeWindow()
 
 void WuakeWindow::show()
 {
-    if (!isHidden()) return;
+    if (mIsShowing) return;
 
     QDialog::show();
 
@@ -60,12 +61,23 @@ void WuakeWindow::show()
 
 void WuakeWindow::hide()
 {
-    if (isHidden()) return;
+    if (!mIsShowing) return;
     if (mShowAnim.state() == QAbstractAnimation::Running ||
         mHideAnim.state() == QAbstractAnimation::Running) {
         return;
     }
     mHideAnim.start();
+}
+
+void WuakeWindow::onShow()
+{
+    activateWindow();
+    mIsShowing = true;
+}
+
+void WuakeWindow::onHide()
+{
+    mIsShowing = false;
 }
 
 void WuakeWindow::initAnim()
@@ -75,14 +87,16 @@ void WuakeWindow::initAnim()
     mShowAnim.setTargetObject(this);
     mShowAnim.setPropertyName("pos");
     mShowAnim.setDuration(170);
-    mShowAnim.setEasingCurve(QEasingCurve::OutQuint);
+    mShowAnim.setEasingCurve(QEasingCurve::Linear);
+
+    connect(&mShowAnim, &QPropertyAnimation::finished, this, &WuakeWindow::onShow);
 
     mHideAnim.setTargetObject(this);
     mHideAnim.setPropertyName("pos");
     mHideAnim.setDuration(170);
-    mHideAnim.setEasingCurve(QEasingCurve::InQuint);
+    mHideAnim.setEasingCurve(QEasingCurve::Linear);
 
-    connect(&mHideAnim, &QPropertyAnimation::finished, this, &QDialog::hide);
+    connect(&mHideAnim, &QPropertyAnimation::finished, this, &WuakeWindow::onHide);
 }
 
 void WuakeWindow::updateAnimRect()
@@ -138,11 +152,10 @@ void WuakeWindow::onHotkey()
     HotKeyCode keyCode = mHotkeys.key(hotkeyStr, HOTKEY_NONE);
 
     if (HOTKEY_SHOW_HIDE == keyCode) {
-        if (isHidden()) {
-            show();
-            activateWindow();
-        } else {
+        if (mIsShowing) {
             hide();
+        } else {
+            show();
         }
         return;
     }

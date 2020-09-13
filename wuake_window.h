@@ -31,6 +31,8 @@ public:
 public slots:
     void show();
     void hide();
+    void onShow();
+    void onHide();
 
 protected:
     void resizeEvent(QResizeEvent* event);
@@ -53,4 +55,6 @@ private:
 
     QPropertyAnimation mShowAnim;
     QPropertyAnimation mHideAnim;
+
+    bool mIsShowing;
 };
