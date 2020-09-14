@@ -57,4 +57,6 @@ private:
     QPropertyAnimation mHideAnim;
 
     bool mIsShowing;
+
+    void *mPrevActiveWindow;
 };

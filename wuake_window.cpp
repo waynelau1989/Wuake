@@ -9,6 +9,7 @@
 #include <QRect>
 #include <QMenu>
 #include <QScreen>
+#include <Windows.h>
 #include "QHotkey"
 #include "wuake_window.h"
 #include "wuake_tab_page.h"
@@ -54,6 +55,14 @@ void WuakeWindow::show()
 {
     if (mIsShowing) return;
 
+    mPrevActiveWindow = ::GetActiveWindow();
+
+    if (!mPrevActiveWindow) {
+        mPrevActiveWindow = ::GetForegroundWindow();
+    }
+
+    qDebug() << "Active Window:" << mPrevActiveWindow;
+
     QDialog::show();
 
     mShowAnim.start();
@@ -78,6 +87,11 @@ void WuakeWindow::onShow()
 void WuakeWindow::onHide()
 {
     mIsShowing = false;
+
+    if (mPrevActiveWindow) {
+        ::SetForegroundWindow((HWND)mPrevActiveWindow);
+        ::SetActiveWindow((HWND)mPrevActiveWindow);
+    }
 }
 
 void WuakeWindow::initAnim()
